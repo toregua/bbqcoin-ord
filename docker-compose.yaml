@@ -1,0 +1,29 @@
+services:
+  ord-indexer:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+      - FIRST_INSCRIPTION_HEIGHT=1
+      - FIRST_BUNE_HEIGHT=1
+    tty: false
+    restart: "always"
+    # for the indexer to be able to connect to the local bbqcoin node we use the host network
+    # network_mode: "host"
+    ports:
+      - 1234:80
+    entrypoint: [ "ord", "--rpc-url=${RPC_URL}", "--data-dir=/root/.data", "--nr-parallel-requests=250", "--first-inscription-height=${FIRST_INSCRIPTION_HEIGHT}", "--first-bune-height=${FIRST_BUNE_HEIGHT}", "--index-bunes", "--index-transactions", "--index-bbq20", "server" ]
+    volumes:
+      #- ${BBQ_MOUNT_DIR_INDEXER:-/mnt/ord-node}/indexer-data-main:/root/.data:delegated
+      # If your bbqcoin node is running in a container, you can mount the bbqcoin data directory to the indexer container
+      # - bbq-data:/root/.bbqcoin
+      - /app/bbqcoin-node/volume:/root/.bbqcoin:ro
+      - ./ord_bbqcoin_data:/root/.data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    privileged: true

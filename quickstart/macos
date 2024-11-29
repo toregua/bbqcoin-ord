@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+# install homebrew
+if ! command -v brew; then
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# check homebrew
+brew --version
+
+# install bbqcoin
+if ! command -v bbqcoind; then
+  brew install bbqcoin
+fi
+
+# check bbqcoind
+bbqcoind --version
+
+# write config
+if [[ ! -f ~/Library/Application\ Support/Bbqcoin/bbqcoin.conf ]]; then
+  printf 'txindex=1\nsignet=1\n' > ~/Library/Application\ Support/Bbqcoin/bbqcoin.conf
+fi
+
+# start bbqcoind
+if ! bbqcoin-cli getblockchaininfo; then
+  brew services start bbqcoin
+fi
+
+# check bbqcoind
+bbqcoin-cli getblockchaininfo | grep signet
+
+# install ord
+if ! command -v ord; then
+  curl --proto '=https' --tlsv1.2 -fsLS https://raw.githubusercontent.com/toregua/ord-bbqcoin/master/install.sh?token=GHSAT0AAAAAAB657S54D565E7TB4B3NBCE4Y736PRQ | bash -s
+fi
+
+# check ord
+ord --version
